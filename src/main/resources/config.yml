@@ -1,0 +1,14 @@
+#Dedication Settings
+
+minimumHoursPlayed: 10
+#Currently disabled... Values are config, file and database.
+backendType: file
+lockedBlocks:
+    - Chest
+    - Double_chest
+    - Furnace
+    - Hopper
+    - Dispenser
+    - Dropper
+    - Trapped_Chest
+    - Ender_Chest
