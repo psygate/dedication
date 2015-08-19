@@ -59,6 +59,29 @@ public class Dedication extends JavaPlugin implements Listener {
             lockedBlocks.add(Material.DROPPER);
             lockedBlocks.add(Material.DISPENSER);
         }
+        
+        new BukkitRunnable() {
+			 
+            @Override
+            public void run() {
+           for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+        	   
+               if (event.getPlayer().hasMetadata(playedTimeTokenKey)) {
+                   List<MetadataValue> timestamp = player.getMetadata(playedTimeTokenKey);
+                   for (MetadataValue value : timestamp) {
+                       if (value.getOwningPlugin() == this) {
+                           backend.addPlaytime(event.getPlayer(), System.currentTimeMillis() - value.asLong());
+                           break;
+                       }
+                   }
+               }
+        	   
+           }
+            }
+ 
+        }.runTaskLater(this,TimeUnit.MINUTES.toMillis(5));
+        
+        
     }
 
     @Override
