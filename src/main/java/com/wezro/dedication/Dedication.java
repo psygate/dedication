@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -21,6 +22,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import vg.civcraft.mc.citadel.Citadel;
 import vg.civcraft.mc.citadel.reinforcement.PlayerReinforcement;
@@ -59,34 +61,43 @@ public class Dedication extends JavaPlugin implements Listener {
             lockedBlocks.add(Material.DROPPER);
             lockedBlocks.add(Material.DISPENSER);
         }
-        
+
         new BukkitRunnable() {
-			 
+
             @Override
             public void run() {
-           for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-        	   
-               if (event.getPlayer().hasMetadata(playedTimeTokenKey)) {
-                   List<MetadataValue> timestamp = player.getMetadata(playedTimeTokenKey);
-                   for (MetadataValue value : timestamp) {
-                       if (value.getOwningPlugin() == this) {
-                           backend.addPlaytime(event.getPlayer(), System.currentTimeMillis() - value.asLong());
-                           break;
-                       }
-                   }
-               }
-        	   
-           }
+                for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+
+                    if (player.hasMetadata(playedTimeTokenKey)) {
+                        List<MetadataValue> timestamp = player.getMetadata(playedTimeTokenKey);
+                        for (MetadataValue value : timestamp) {
+                            if (value.getOwningPlugin() == Dedication.this) {
+                                backend.addPlaytime(player, System.currentTimeMillis() - value.asLong());
+                                player.setMetadata(playedTimeTokenKey, new PlayerDedication(Dedication.this, System.currentTimeMillis()));
+                                break;
+                            }
+                        }
+                    }
+                }
             }
- 
-        }.runTaskTimer(this,TimeUnit.MINUTES.toMillis(5));
-        
-        
+
+        }.runTaskTimer(Dedication.this, TimeUnit.MINUTES.toMillis(5), TimeUnit.MINUTES.toMillis(5));
     }
 
     @Override
     public void onDisable() {
-
+        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+            if (player.hasMetadata(playedTimeTokenKey)) {
+                List<MetadataValue> timestamp = player.getMetadata(playedTimeTokenKey);
+                for (MetadataValue value : timestamp) {
+                    if (value.getOwningPlugin() == Dedication.this) {
+                        backend.addPlaytime(player, System.currentTimeMillis() - value.asLong());
+                        player.setMetadata(playedTimeTokenKey, new PlayerDedication(Dedication.this, System.currentTimeMillis()));
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     @EventHandler
