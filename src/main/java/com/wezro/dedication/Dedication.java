@@ -79,7 +79,7 @@ public class Dedication extends JavaPlugin implements Listener {
            }
             }
  
-        }.runTaskLater(this,TimeUnit.MINUTES.toMillis(5));
+        }.runTaskTimer(this,TimeUnit.MINUTES.toMillis(5));
         
         
     }
