@@ -132,6 +132,9 @@ public class Dedication extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onAttack(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player && canBypass((Player) event.getDamager())) {
+            return;
+        }
         if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
             Player attacker = (Player) event.getEntity();
             for (MetadataValue value : attacker.getMetadata(privilegeTokenKey)) {
@@ -143,8 +146,15 @@ public class Dedication extends JavaPlugin implements Listener {
         }
     }
 
+    private boolean canBypass(Player player) {
+        return player.hasPermission("dedication.bypass");
+    }
+
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
+        if (canBypass((Player) event.getPlayer())) {
+            return;
+        }
         if (event.getClickedBlock() == null || !(event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
             // Skip this. Player didnt click a block.
             return;
