@@ -15,6 +15,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.entity.Player;
@@ -42,31 +43,36 @@ public class FileBackend implements PlayerDedicationBackend {
     public void addPlaytime(Player player, long timedelta) {
         Path playerfile = basepath.resolve(player.getUniqueId().toString());
         if (!Files.exists(playerfile)) {
-            try (FileChannel channel = FileChannel.open(playerfile, StandardOpenOption.WRITE)) {
-                channel.write(ByteBuffer.wrap(Long.toString(timedelta).getBytes(charset)));
-            } catch (IOException ex) {
-                parent.getLogger().log(Level.WARNING, "Unable to log data for " + player.getName(), ex);
-            }
-        } else {
-            try (FileChannel channel = FileChannel.open(playerfile, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
-                ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
-                channel.read(buffer);
-
-                long val = Long.parseLong(new String(asByteArray(buffer), charset));
-                channel.position(0);
-                channel.write(ByteBuffer.wrap(Long.toString(timedelta + val).getBytes(charset)));
-            } catch (IOException ex) {
-                parent.getLogger().log(Level.WARNING, "Unable to log data for " + player.getName(), ex);
-            }
+//            try (FileChannel channel = FileChannel.open(playerfile, StandardOpenOption.WRITE)) {
+//                channel.write(ByteBuffer.wrap(Long.toString(timedelta).getBytes(charset)));
+//            } catch (IOException ex) {
+//                parent.getLogger().log(Level.WARNING, "Unable to log data for " + player.getName(), ex);
+//            }
+            addPlayer(player);
         }
+
+        try (FileChannel channel = FileChannel.open(playerfile, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
+            ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
+            channel.read(buffer);
+            buffer.limit(buffer.position());
+            buffer.rewind();
+
+//            parent.getLogger().log(Level.WARNING, "Time loaded: {0} - Array: {1}", new Object[]{new String(asByteArray(buffer), charset), Arrays.toString(asByteArray(buffer))});
+
+            long val = Long.parseLong(new String(asByteArray(buffer), charset));
+            channel.position(0);
+            channel.write(ByteBuffer.wrap(Long.toString(timedelta + val).getBytes(charset)));
+        } catch (IOException ex) {
+            parent.getLogger().log(Level.WARNING, "Unable to update log data for " + player.getName(), ex);
+        }
+
     }
 
     private byte[] asByteArray(ByteBuffer buffer) {
-        buffer.rewind();
         byte[] data = new byte[buffer.limit() - buffer.position()];
 
         for (int i = 0; i < data.length; i++) {
-            data[i] = buffer.get(i);
+            data[i] = buffer.get();
         }
 
         return data;
@@ -80,7 +86,18 @@ public class FileBackend implements PlayerDedicationBackend {
 
     @Override
     public void addPlayer(Player player) {
-        addPlaytime(player, 0);
+        Path playerfile = basepath.resolve(player.getUniqueId().toString());
+
+        try (FileChannel channel = FileChannel.open(playerfile, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
+//            ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
+//            channel.read(buffer);
+
+            channel.position(0);
+
+            channel.write(ByteBuffer.wrap(Long.toString(0).getBytes(charset)));
+        } catch (IOException ex) {
+            parent.getLogger().log(Level.WARNING, "Unable create log data for " + player.getName(), ex);
+        }
     }
 
     @Override
@@ -90,12 +107,15 @@ public class FileBackend implements PlayerDedicationBackend {
         if (hasPlayer(player)) {
             try (FileChannel channel = FileChannel.open(playerfile, StandardOpenOption.READ)) {
                 ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
+                buffer.limit((int) Files.size(playerfile));
                 channel.read(buffer);
-
+                buffer.limit(buffer.position());
+                buffer.rewind();
+//                parent.getLogger().log(Level.WARNING, "Time loaded: {0} - Array: {1}", new Object[]{new String(asByteArray(buffer), charset), Arrays.toString(asByteArray(buffer))});
                 long val = Long.parseLong(new String(asByteArray(buffer), charset));
                 return val;
             } catch (IOException ex) {
-                parent.getLogger().log(Level.WARNING, "Unable to log data for " + player.getName(), ex);
+                parent.getLogger().log(Level.WARNING, "Unable to read log data for " + player.getName(), ex);
                 return 0;
             }
         } else {

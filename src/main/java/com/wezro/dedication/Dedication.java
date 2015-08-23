@@ -1,5 +1,6 @@
 package com.wezro.dedication;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +45,19 @@ public class Dedication extends JavaPlugin implements Listener {
         getConfig().options().copyDefaults(true);
         getConfig().options().copyHeader(true);
         saveConfig();
+
+        String type = getConfig().getString("backendType").toLowerCase();
+        try {
+            switch (type) {
+                case "file":
+                    backend = new FileBackend(this);
+                    break;
+                default:
+                    throw new IllegalStateException("No backend selected.");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         List<String> locked = (List<String>) getConfig().getList("lockedBlocks");
         try {
@@ -176,11 +190,54 @@ public class Dedication extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (cmd.getName().equalsIgnoreCase("dtl")) {
-            //Send the player the time they played
-            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "[Dedication]" + ChatColor.RESET
-                    + "You have played:" + getTime((Player) sender));
+        if (cmd.getName().equalsIgnoreCase("dedicationtimer")) {
+            if (sender.isOp()) {
+                if (args.length > 0) {
+                    for (String s : args) {
+                        Player p = Bukkit.getPlayer(s);
+                        if (p != null && backend.hasPlayer(p)) {
+                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player " + s + " played for "
+                                    + TimeUnit.MILLISECONDS.toHours(getTime(p)) + "h ("
+                                    + TimeUnit.MILLISECONDS.toMinutes(getTime(p)) + "m)");
+                        } else {
+                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found: " + s);
+                        }
+                    }
+                } else {
+                    //Send the player the time they played
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "[Dedication]" + ChatColor.RESET
+                            + "You have played: " + TimeUnit.MILLISECONDS.toHours(getTime((Player) sender)) + "h ("
+                            + TimeUnit.MILLISECONDS.toMinutes(getTime((Player) sender)) + "m)");
+                }
+            } else {
+                //Send the player the time they played
+                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "[Dedication]" + ChatColor.RESET
+                        + "You have played: " + getTime((Player) sender) + "h");
+            }
+
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("dedicationsettimer")) {
+            if (args.length < 2) {
+                sender.sendMessage(ChatColor.RED + cmd.getUsage());
+            } else {
+                String player = args[0];
+                String time = args[1];
+                int itime = 0;
+
+                Player p = Bukkit.getPlayerExact(player);
+                if (p == null) {
+                    sender.sendMessage(ChatColor.RED + "Player not found. (" + player + ")");
+                }
+
+                try {
+                    itime = Integer.parseInt(time);
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "Not a valid time value. (" + args[1] + ")");
+                    return true;
+                }
+
+                backend.addPlaytime(p, itime);
+            }
         }
         return false;
     }
@@ -191,8 +248,8 @@ public class Dedication extends JavaPlugin implements Listener {
 
             long joinTime = player.getMetadata(playedTimeTokenKey).get(0).asLong();
             long now = System.currentTimeMillis();
-            long hours = (joinTime - now) / (3600000) % 24;
-            long hoursPrev = (long) this.getConfig().get(player.getUniqueId() + ".hoursPlayed");
+            long hours = joinTime - now;
+            long hoursPrev = backend.getPlayerPlaytime(player);
 
             return hours + hoursPrev;
         } else {

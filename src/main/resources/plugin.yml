@@ -4,11 +4,19 @@ version: 1
 author: Nok
 depend: [Citadel]
 commands:
-dtl:
-    description: Shows you how much time is left.
-    usage: /dtl
+    dedicationtimer:
+        description: Shows you how much time is left.
+        usage: /dtl
+    dedicationsettimer:
+        description: Allows modification of the dedication time.
+        usage: /dst <playername> <value in hours>
+    
+
 permissions:
     dedication.bypass:
         description: Allows the player to bypass dedication.
         default: op
-        
+    dedication.settimer:
+        description: Allows modification of the dedication time.
+        default: op
+    
