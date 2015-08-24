@@ -2,7 +2,7 @@ name: Dedication
 main: com.wezro.dedication.Dedication
 version: 1
 author: Nok
-depend: [Citadel]
+depend: [Citadel, CombatTagPlus]
 commands:
     dedicationtimer:
         description: Shows you how much time is left.

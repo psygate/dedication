@@ -1,5 +1,14 @@
 package com.wezro.dedication;
 
+import com.wezro.dedication.backend.FileBackend;
+import com.wezro.dedication.backend.PlayerDedicationBackend;
+import com.wezro.dedication.data.PlayerDedication;
+import com.wezro.dedication.commands.DedicationSetTimerCommand;
+import com.wezro.dedication.commands.DedicationTimerCommand;
+import com.wezro.dedication.listeners.CitadelListener;
+import com.wezro.dedication.listeners.LoginQuitListener;
+import com.wezro.dedication.listeners.PvPListener;
+import com.wezro.dedication.runnables.SafetyStorage;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -7,6 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -14,8 +24,10 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -32,13 +44,17 @@ import vg.civcraft.mc.namelayer.permission.PermissionType;
 
 public class Dedication extends JavaPlugin implements Listener {
 
+    private static Dedication instance;
+
     private PlayerDedicationBackend backend;
-    private final String privilegeTokenKey = "DEDICATION_PRIVILEGE";
-    private final String playedTimeTokenKey = "SERVER_TIME";
-    private final Set<Material> lockedBlocks = new HashSet<>();
+    public static final String privilegeTokenKey = "DEDICATION_PRIVILEGE";
+    public static final String playedTimeTokenKey = "SERVER_TIME";
+    public static final String PREFIX = "[Dedication]";
+    private Configuration configuration;
 
     @Override
     public void onEnable() {
+        instance = this;
         //Listen for all the events in this class
         getServer().getPluginManager().registerEvents(this, this);
         //Save out configration if it doesnt exist.
@@ -46,67 +62,77 @@ public class Dedication extends JavaPlugin implements Listener {
         getConfig().options().copyHeader(true);
         saveConfig();
 
-        String type = getConfig().getString("backendType").toLowerCase();
-        try {
-            switch (type) {
-                case "file":
+        configuration = new Configuration(this);
+        switch (configuration.getBackendType()) {
+            case FILE: {
+                try {
                     backend = new FileBackend(this);
-                    break;
-                default:
-                    throw new IllegalStateException("No backend selected.");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        List<String> locked = (List<String>) getConfig().getList("lockedBlocks");
-        try {
-            for (String lock : locked) {
-                lockedBlocks.add(Material.getMaterial(lock.replace(" ", "_").toUpperCase()));
-            }
-        } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "Dedication error. Loaded default locks.", e);
-
-            lockedBlocks.add(Material.CHEST);
-            lockedBlocks.add(Material.ENDER_CHEST);
-            lockedBlocks.add(Material.TRAPPED_CHEST);
-            lockedBlocks.add(Material.HOPPER);
-            lockedBlocks.add(Material.FURNACE);
-            lockedBlocks.add(Material.DROPPER);
-            lockedBlocks.add(Material.DISPENSER);
-        }
-
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-
-                    if (player.hasMetadata(playedTimeTokenKey)) {
-                        List<MetadataValue> timestamp = player.getMetadata(playedTimeTokenKey);
-                        for (MetadataValue value : timestamp) {
-                            if (value.getOwningPlugin() == Dedication.this) {
-                                backend.addPlaytime(player, System.currentTimeMillis() - value.asLong());
-                                player.setMetadata(playedTimeTokenKey, new PlayerDedication(Dedication.this, System.currentTimeMillis()));
-                                break;
-                            }
-                        }
-                    }
+                } catch (IOException ex) {
+                    throw new IllegalStateException("No backend.");
                 }
             }
+            break;
+            default:
+                throw new IllegalStateException("No backend.");
+        }
 
-        }.runTaskTimer(Dedication.this, TimeUnit.MINUTES.toMillis(5), TimeUnit.MINUTES.toMillis(5));
+        Bukkit.getPluginManager().registerEvents(new CitadelListener(), this);
+        Bukkit.getPluginManager().registerEvents(new LoginQuitListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PvPListener(), this);
+
+        Bukkit.getPluginCommand("dedicationtimer").setExecutor(new DedicationTimerCommand());
+        Bukkit.getPluginCommand("dedicationsettimer").setExecutor(new DedicationSetTimerCommand());
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new SafetyStorage(), configuration.getSafetyStorage(), configuration.getSafetyStorage());
     }
 
-    @Override
-    public void onDisable() {
+    public static Dedication getInstance() {
+        return instance;
+    }
+
+    public static boolean isPlayerDedicated(Player p) {
+        return p.hasPermission("dedication.bypass") || hasDedicatedMetaTag(p)
+                || (instance.backend.hasPlayer(p)
+                && (instance.backend.getPlayerPlaytime(p) > instance.configuration.getHoursRequired()));
+    }
+
+    private static boolean hasDedicatedMetaTag(Player p) {
+        for (MetadataValue val : p.getMetadata(privilegeTokenKey)) {
+            if (val.getOwningPlugin() == instance) {
+                return val.asBoolean();
+            }
+        }
+
+        return false;
+    }
+
+    public static void addPlaytime(Player player, long l) {
+        instance.backend.addPlaytime(player, l);
+    }
+
+    public static boolean hasPlayer(Player player) {
+        return instance.backend.hasPlayer(player);
+    }
+
+    public static long getPlayerPlaytime(Player player) {
+        return instance.backend.getPlayerPlaytime(player);
+    }
+
+    public static void addPlayer(Player player) {
+        instance.backend.addPlayer(player);
+    }
+
+    public static Configuration getConfiguration() {
+        return instance.configuration;
+    }
+
+    public static void forceSave() {
         for (Player player : Bukkit.getServer().getOnlinePlayers()) {
             if (player.hasMetadata(playedTimeTokenKey)) {
                 List<MetadataValue> timestamp = player.getMetadata(playedTimeTokenKey);
                 for (MetadataValue value : timestamp) {
-                    if (value.getOwningPlugin() == Dedication.this) {
-                        backend.addPlaytime(player, System.currentTimeMillis() - value.asLong());
-                        player.setMetadata(playedTimeTokenKey, new PlayerDedication(Dedication.this, System.currentTimeMillis()));
+                    if (value.getOwningPlugin() == getInstance()) {
+                        instance.backend.addPlaytime(player, System.currentTimeMillis() - value.asLong());
+                        player.setMetadata(playedTimeTokenKey, new PlayerDedication(getInstance(), System.currentTimeMillis()));
                         break;
                     }
                 }
@@ -114,146 +140,23 @@ public class Dedication extends JavaPlugin implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-
-        // Store some temp data in the player, which is the systems time.
-        event.getPlayer().setMetadata(playedTimeTokenKey, new FixedMetadataValue(this, System.currentTimeMillis()));
-        final Player player = event.getPlayer();
-        //If the player doesn't have a place in the config, create one.
-        if (!backend.hasPlayer(player)) {
-            backend.addPlayer(player);
-        }
-
-        if (backend.getPlayerPlaytime(player) > TimeUnit.HOURS.toMillis(getConfig().getInt("minimumHoursPlayed"))) {
-            event.getPlayer().setMetadata(privilegeTokenKey, new FixedMetadataValue(this, true));
-        }
-    }
-
-    @EventHandler
-    public void onPlayerLeave(PlayerQuitEvent event) {
-        //Check if the player has the metadata.
-        if (event.getPlayer().hasMetadata(playedTimeTokenKey)) {
-            List<MetadataValue> timestamp = event.getPlayer().getMetadata(playedTimeTokenKey);
-            for (MetadataValue value : timestamp) {
-                if (value.getOwningPlugin() == this) {
-                    backend.addPlaytime(event.getPlayer(), System.currentTimeMillis() - value.asLong());
-                    break;
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    public void onAttack(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player && canBypass((Player) event.getDamager())) {
-            return;
-        }
-        if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
-            Player attacker = (Player) event.getEntity();
-            for (MetadataValue value : attacker.getMetadata(privilegeTokenKey)) {
-                if (value.getOwningPlugin() == this && value.asBoolean()) {
-                    event.setCancelled(true);
-                    break;
-                }
-            }
-        }
-    }
-
-    private boolean canBypass(Player player) {
-        return player.hasPermission("dedication.bypass");
-    }
-
-    @EventHandler
-    public void onInteract(PlayerInteractEvent event) {
-        if (canBypass((Player) event.getPlayer())) {
-            return;
-        }
-        if (event.getClickedBlock() == null || !(event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
-            // Skip this. Player didnt click a block.
-            return;
-        }
-        if (lockedBlocks.contains(event.getClickedBlock().getType())
-                && Citadel.getReinforcementManager().isReinforced(event.getClickedBlock())) {
-            Player player = (Player) event.getPlayer();
-
-            Reinforcement rf = Citadel.getReinforcementManager().getReinforcement(event.getClickedBlock());
-
-            if (rf instanceof PlayerReinforcement) {
-                PlayerReinforcement prf = (PlayerReinforcement) rf;
-                if (!prf.isAccessible(event.getPlayer(), PermissionType.MEMBERS) || !player.hasMetadata(privilegeTokenKey)) {
-                    event.setCancelled(true);
-                }
-            }
-        }
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (cmd.getName().equalsIgnoreCase("dedicationtimer")) {
-            if (sender.isOp()) {
-                if (args.length > 0) {
-                    for (String s : args) {
-                        Player p = Bukkit.getPlayer(s);
-                        if (p != null && backend.hasPlayer(p)) {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player " + s + " played for "
-                                    + TimeUnit.MILLISECONDS.toHours(getTime(p)) + "h ("
-                                    + TimeUnit.MILLISECONDS.toMinutes(getTime(p)) + "m)");
-                        } else {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found: " + s);
-                        }
-                    }
-                } else {
-                    //Send the player the time they played
-                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "[Dedication]" + ChatColor.RESET
-                            + "You have played: " + TimeUnit.MILLISECONDS.toHours(getTime((Player) sender)) + "h ("
-                            + TimeUnit.MILLISECONDS.toMinutes(getTime((Player) sender)) + "m)");
-                }
-            } else {
-                //Send the player the time they played
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "[Dedication]" + ChatColor.RESET
-                        + "You have played: " + getTime((Player) sender) + "h");
-            }
-
-            return true;
-        } else if (cmd.getName().equalsIgnoreCase("dedicationsettimer")) {
-            if (args.length < 2) {
-                sender.sendMessage(ChatColor.RED + cmd.getUsage());
-            } else {
-                String player = args[0];
-                String time = args[1];
-                int itime = 0;
-
-                Player p = Bukkit.getPlayerExact(player);
-                if (p == null) {
-                    sender.sendMessage(ChatColor.RED + "Player not found. (" + player + ")");
-                }
-
-                try {
-                    itime = Integer.parseInt(time);
-                } catch (NumberFormatException e) {
-                    sender.sendMessage(ChatColor.RED + "Not a valid time value. (" + args[1] + ")");
-                    return true;
-                }
-
-                backend.addPlaytime(p, itime);
-            }
-        }
-        return false;
-    }
-
     //Simple little function to check how much time the player has left.
-    public long getTime(Player player) {
+    public static long getTimePlayedInMillis(Player player) {
         if (player.hasMetadata(playedTimeTokenKey)) {
 
             long joinTime = player.getMetadata(playedTimeTokenKey).get(0).asLong();
             long now = System.currentTimeMillis();
             long hours = joinTime - now;
-            long hoursPrev = backend.getPlayerPlaytime(player);
+            long hoursPrev = instance.backend.getPlayerPlaytime(player);
 
             return hours + hoursPrev;
         } else {
             return 0;
         }
+    }
+
+    @Override
+    public void onDisable() {
+        forceSave();
     }
 }

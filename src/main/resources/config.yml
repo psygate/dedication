@@ -1,6 +1,10 @@
 #Dedication Settings
 
-minimumHoursPlayed: 10
+minimumHoursPlayed: 10h
+# If there is no combat tag, this will be used as a fallback.
+fallBackStrikeBackTime: 20s
+# Store every XXX ticks for safety.
+safetyStorage: 6000
 #Currently disabled... Values are config, file and database.
 backendType: file
 lockedBlocks:

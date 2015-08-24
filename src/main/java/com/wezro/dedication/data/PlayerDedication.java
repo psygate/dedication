@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.wezro.dedication;
+package com.wezro.dedication.data;
 
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
@@ -17,5 +17,4 @@ public class PlayerDedication extends FixedMetadataValue {
     public PlayerDedication(Plugin owningPlugin, long timestamp) {
         super(owningPlugin, timestamp);
     }
-
 }
