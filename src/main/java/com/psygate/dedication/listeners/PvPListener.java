@@ -1,17 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package com.wezro.dedication.listeners;
+package com.psygate.dedication.listeners;
 
-import com.wezro.dedication.Dedication;
+/**
+ *
+ * @author psygate (https://github.com/psygate)
+ */
+import com.psygate.dedication.Dedication;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import net.minelink.ctplus.CombatTagPlus;
+import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -25,12 +24,12 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
  */
 public class PvPListener implements Listener {
 
-    private final CombatTagPlus ctp = (CombatTagPlus) Bukkit.getPluginManager().getPlugin("CombatTagPlus");
-    private final long timeout = TimeUnit.SECONDS.toMillis(ctp.getConfig().getInt("tag-duration"));
+    private final long timeout;
     private final Map<UUID, AttackerRecord> attackers = new HashMap<>();
 
     public PvPListener() {
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(Dedication.getInstance(), new Cleaner(), 20 * 15, 20 * 15);
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(Dedication.getPlugin(Dedication.class), new Cleaner(), 20 * 15, 20 * 15);
+        timeout = Dedication.getConfiguration().getStrikeBackTime();
     }
 
     @EventHandler
@@ -38,8 +37,11 @@ public class PvPListener implements Listener {
         if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
             Player attacker = (Player) event.getDamager();
             Player victim = (Player) event.getEntity();
-            boolean attackerdicated = Dedication.isPlayerDedicated(attacker);
-            boolean victimdedicated = Dedication.isPlayerDedicated(victim);
+            boolean attackerdicated = Dedication.initPlayer(attacker.getUniqueId()).isDedicated();
+            boolean victimdedicated = Dedication.initPlayer(victim.getUniqueId()).isDedicated();
+
+            Dedication.logger().log(Level.INFO, "Dedication state: Attacker: {0} Victim: {1}", new Object[]{attackerdicated, victimdedicated});
+            Dedication.logger().log(Level.INFO, "Dedication state: Attacker: {0} Victim: {1}", new Object[]{attackerdicated, victimdedicated});
 
             if (attackerdicated && !victimdedicated) {
                 if (!attackers.containsKey(victim.getUniqueId())) {

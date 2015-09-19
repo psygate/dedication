@@ -1,22 +1,57 @@
 name: Dedication
-main: com.wezro.dedication.Dedication
-version: 1
-author: Nok
-depend: [Citadel, CombatTagPlus]
+main: com.psygate.dedication.Dedication
+version: 1.2
+author: Nok, psygate
+softdepend: [CombatTagPlus, Citadel]
+
 commands:
-    dedicationtimer:
+    timer:
         description: Shows you how much time is left.
-        usage: /dtl
-    dedicationsettimer:
-        description: Allows modification of the dedication time.
-        usage: /dst <playername> <value in hours>
-    
+        usage: /dtl (<playernames...>)
+        aliases: [dtl]
+        permission: dedication.timer.show
+    bypass:
+        description: Sets bypass mode for dedication.
+        aliases: [ddb]
+        usage: /ddb <playername>
+        permission: dedication.admin.setbypass
+    flush:
+        description: Flushs all cache data to the disk.
+        aliases: [df]
+        usage: /df
+        permission: dedication.admin.flush
+    dreload:
+        description: Reloads all data from disk. It might be advisable to flush first to avoid loss of data.
+        aliases: [dr]
+        usage: /dr
+        permission: dedication.admin.reload
+        
 
 permissions:
     dedication.bypass:
         description: Allows the player to bypass dedication.
         default: op
-    dedication.settimer:
-        description: Allows modification of the dedication time.
+    dedication.admin.setbypass:
+        description: Allows setting of bypass mode for dedication.
         default: op
-    
+    dedication.timer.show:
+        description: Allows showing of the dedication time.
+        default: true
+    dedication.admin.extensiveinfo:
+        description: Allows access to extensive information about dedication.
+        default: op
+    dedication.admin.flush:
+        description: Flushs the cache to disk.
+        default: op
+    dedication.admin.reload:
+        description: Reloads all settings.
+        default: op
+    dedication.admin:
+        description: Allows modification of dedication.
+        children:
+            dedication.admin.setbypass: true
+            dedication.admin.setbypass: true
+            dedication.admin.extensiveinfo: true
+            dedication.admin.seeothers: true
+            dedication.admin.flush: true
+            dedication.admin.reload: true

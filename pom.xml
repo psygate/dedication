@@ -3,23 +3,32 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.wezro</groupId>
     <artifactId>dedication</artifactId>
-    <version>1.0a</version>
+    <version>1.2a</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
             <groupId>vg.civcraft.mc</groupId>
             <artifactId>namelayer</artifactId>
-            <version>2.4.0</version>
+            <version>[2.3.4,)</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>vg.civcraft.mc.citadel</groupId>
+            <artifactId>citadel</artifactId>
+            <version>[3.3.1,)</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.minelink</groupId>
+            <artifactId>CombatTagPlusCompat-API</artifactId>
+            <version>1.2.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>Spigot1.8.7</artifactId>
-            <version>1.8.7</version>
-        </dependency>
-        <dependency>
-            <groupId>com.untamedears</groupId>
-            <artifactId>citadel</artifactId>
-            <version>3.3.1</version>
+            <artifactId>spigot-api</artifactId>
+            <version>1.8.8</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <properties>

@@ -1,15 +1,31 @@
 #Dedication Settings
 
-minimumHoursPlayed: 10h
+targets:
+    blockbreaking:
+        - type: log
+          amount: 24
+        - type: stone
+          amount: 48
+        - type: '*'
+          amount: 64
+    blockplacing:
+        - type: '*'
+          amount: 48
+    eating:
+        - type: '*'
+          amount: 48
+    minimumHoursPlayed: 10h
 # If there is no combat tag, this will be used as a fallback.
 fallBackStrikeBackTime: 20s
 # Store every XXX ticks for safety.
 safetyStorage: 6000
 #Currently disabled... Values are config, file and database.
 backendType: file
+# Completely blocks actions.
+blockbreakLockout: false
+blockplaceLockout: false
 lockedBlocks:
     - Chest
-    - Double_chest
     - Furnace
     - Hopper
     - Dispenser
