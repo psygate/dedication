@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.bukkit.entity.Player;
 
 /**
  *
@@ -52,15 +53,23 @@ public class PlayerData implements Serializable {
 
     public boolean isDedicated() {
         if (adminOverride) {
-            Dedication.logger().info("Satisfied by admin override.");
+//            Dedication.logger().info("Satisfied by admin override.");
 
             return true;
         }
 
+        Player pl = Dedication.getPlugin(Dedication.class).getServer().getPlayer(player);
+
+        if (pl.hasPermission("dedication.bypass")) {
+            return true;
+        }
+
         for (Target tgt : targets) {
-            Dedication.logger().info("Target: " + tgt + " Satisfied: " + tgt.isSatisfied());
+//            Dedication.logger().info("Target: " + tgt + " Satisfied: " + tgt.isSatisfied());
             if (!tgt.isSatisfied()) {
                 return false;
+            } else {
+                System.out.println("Target satisfied. " + tgt);
             }
         }
 
@@ -77,7 +86,11 @@ public class PlayerData implements Serializable {
 
     @Override
     public String toString() {
-        return "PlayerData{" + "player=" + player + ", targets=" + targets + ", timestamp=" + timestamp + ", adminOverride=" + adminOverride + '}';
+        return "PlayerData{" + "player=" + player + ", targets=" + targets
+                + ", timestamp=" + timestamp + ", adminOverride="
+                + adminOverride + ", has_override_permission="
+                + Dedication.getPlugin(Dedication.class)
+                .getServer().getPlayer(player).hasPermission("dedication.bypass") + "}";
     }
 
 }

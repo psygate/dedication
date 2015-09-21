@@ -73,8 +73,11 @@ public class DedicationTimerCommand implements CommandExecutor {
                     Dedication.logger().log(Level.WARNING, "No rule for: {0}", t.getClass());
                 }
             }
-
-            cs.sendMessage(Dedication.PREFIX + "Progress: " + ((numericDone / numericTarget) * 100) + "%");
+            if (numericTarget == 0) {
+                cs.sendMessage(Dedication.PREFIX + "Progress: 0%");
+            } else {
+                cs.sendMessage(Dedication.PREFIX + "Progress: " + ((numericDone / numericTarget) * 100) + "%");
+            }
         }
     }
 }

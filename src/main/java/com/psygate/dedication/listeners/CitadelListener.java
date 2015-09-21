@@ -54,7 +54,7 @@ public class CitadelListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
-        if (dedication.get(event.getPlayer().getUniqueId()).isDedicated()) {
+        if (Dedication.initPlayer(event.getPlayer().getUniqueId()).isDedicated()) {
             return;
         }
         if (event.getClickedBlock() == null || !(event.getAction() == Action.RIGHT_CLICK_BLOCK)) {

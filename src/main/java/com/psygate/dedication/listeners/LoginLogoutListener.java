@@ -5,6 +5,7 @@ import com.psygate.dedication.data.BlockPlaceTarget;
 import com.psygate.dedication.data.EdibleTarget;
 import com.psygate.dedication.data.PlayerData;
 import com.psygate.dedication.data.TimeTarget;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,6 +32,7 @@ public class LoginLogoutListener implements Listener {
         PlayerData data = Dedication.initPlayer(ev.getPlayer().getUniqueId());
         if (data.isDedicated()) {
             ev.getPlayer().awardAchievement(Achievement.END_PORTAL);
+            ev.getPlayer().sendMessage("You have earned dedicated status.");
         }
         loginTimes.put(ev.getPlayer().getUniqueId(), System.currentTimeMillis());
     }
@@ -39,9 +41,14 @@ public class LoginLogoutListener implements Listener {
     public void onLogout(PlayerQuitEvent ev) {
         if (incrementOn.containsKey(ev.getPlayer().getUniqueId())) {
             for (TimeTarget tgt : incrementOn.get(ev.getPlayer().getUniqueId())) {
+                if (tgt == null) {
+                    continue;
+                }
                 tgt.increment(System.currentTimeMillis() - loginTimes.get(ev.getPlayer().getUniqueId()));
             }
         }
+
+        Dedication.initPlayer(ev.getPlayer().getUniqueId()).setTimestamp(new Date(System.currentTimeMillis()));
 
         incrementOn.remove(ev.getPlayer().getUniqueId());
         loginTimes.remove(ev.getPlayer().getUniqueId());

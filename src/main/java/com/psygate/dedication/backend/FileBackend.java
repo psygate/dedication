@@ -36,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -176,7 +177,7 @@ public class FileBackend implements Backend {
                 if (instance instanceof NumericTarget) {
                     NumericTarget tgt = (NumericTarget) instance;
                     tgt.setValue(jobj.get("value").getAsLong());
-                    tgt.setValue(jobj.get("target").getAsLong());
+                    tgt.setTarget(jobj.get("target").getAsLong());
                 }
 
                 if (instance instanceof MaterialTarget) {

@@ -20,6 +20,7 @@ import com.psygate.dedication.data.TimeTarget;
 import com.psygate.dedication.listeners.CitadelListener;
 import com.psygate.dedication.listeners.PvPListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -92,14 +93,16 @@ public class Dedication extends JavaPlugin {
     }
 
     public static void flushCache() {
-        for (UUID uuid : instance.playerdata.keySet()) {
+        ArrayList<UUID> cpy = new ArrayList<>(instance.playerdata.keySet());
+        for (UUID uuid : cpy) {
             saveAndRemovePlayer(uuid);
         }
     }
 
     public static void reloadCache() {
         instance.playerdata.clear();
-        for (Player p : instance.getServer().getOnlinePlayers()) {
+        ArrayList<Player> cpy = new ArrayList<>(instance.getServer().getOnlinePlayers());
+        for (Player p : cpy) {
             initPlayer(p.getUniqueId());
         }
     }
