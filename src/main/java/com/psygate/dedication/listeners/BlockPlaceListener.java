@@ -51,21 +51,26 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void bucketEmpty(PlayerBucketEmptyEvent ev) {
-        if (ev.getBucket() == Material.LAVA_BUCKET) {
-            ev.getPlayer().sendMessage(Dedication.PREFIX + ChatColor.RED + " You cannot use this.");
-            ev.setCancelled(true);
+        if (!Dedication.initPlayer(ev.getPlayer().getUniqueId()).isDedicated()) {
+            if (ev.getBucket() == Material.LAVA_BUCKET) {
+                ev.getPlayer().sendMessage(Dedication.PREFIX + ChatColor.RED + " You cannot use this.");
+                ev.setCancelled(true);
+            }
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void igniteBlock(BlockIgniteEvent ev) {
-        if (ev.getCause() == BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL) {
-            Block down = ev.getBlock().getRelative(BlockFace.DOWN);
-            if (down != null && down.getType() != Material.OBSIDIAN) {
-                if (ev.getPlayer() != null) {
-                    ev.getPlayer().sendMessage(Dedication.PREFIX + ChatColor.RED + " You cannot ignite this.");
+        if (!Dedication.initPlayer(ev.getPlayer().getUniqueId()).isDedicated()) {
+
+            if (ev.getCause() == BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL) {
+                Block down = ev.getBlock().getRelative(BlockFace.DOWN);
+                if (down != null && down.getType() != Material.OBSIDIAN) {
+                    if (ev.getPlayer() != null) {
+                        ev.getPlayer().sendMessage(Dedication.PREFIX + ChatColor.RED + " You cannot ignite this.");
+                    }
+                    ev.setCancelled(true);
                 }
-                ev.setCancelled(true);
             }
         }
     }
