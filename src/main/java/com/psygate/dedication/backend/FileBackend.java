@@ -32,13 +32,17 @@ import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -101,7 +105,7 @@ public class FileBackend implements Backend {
     public void savePlayerData(PlayerData data) {
         checkPreconditions();
         checkData(data);
-        Dedication.logger().log(Level.FINE, "Saving: {0}", data);
+//        Dedication.logger().log(Level.FINE, "Saving: {0}", data);
         Gson gson = gsonbuilder.create();
         try (FileWriter out = new FileWriter(playerFile(data.getPlayer()).toFile())) {
             gson.toJson(data, out);
@@ -112,8 +116,31 @@ public class FileBackend implements Backend {
 
     @Override
     public void removePlayerData(UUID uuid) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            Files.deleteIfExists(playerFile(uuid));
+        } catch (IOException ex) {
+            Dedication.logger().log(Level.SEVERE, "Cannot delete player data. (" + basefolder.toAbsolutePath() + ")[" + uuid + "]", ex);
+        }
+    }
 
+    @Override
+    public List<PlayerData> loadAll() {
+        LinkedList<PlayerData> loaded = new LinkedList<>();
+
+        try {
+            for (Path p : listPlayerFiles()) {
+                try (FileReader in = new FileReader(p.toFile())) {
+                    loaded.add(gsonbuilder.create().fromJson(in, PlayerData.class));
+                } catch (IOException e) {
+                    Dedication.logger().log(Level.SEVERE, "Cannot load player data. (" + basefolder.toAbsolutePath() + ")", e);
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (IOException ex) {
+            Dedication.logger().log(Level.SEVERE, "Cannot load all player data. (" + basefolder.toAbsolutePath() + ")", ex);
+        }
+
+        return loaded;
     }
 
     private void checkPreconditions() {
@@ -130,6 +157,41 @@ public class FileBackend implements Backend {
 
     private Path playerFile(UUID uuid) {
         return basefolder.resolve(uuid.toString() + POSTFIX);
+    }
+
+    private List<Path> listPlayerFiles() throws IOException {
+        final List<Path> paths = new LinkedList<>();
+        Files.walkFileTree(basefolder, new FileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if (file.getFileName().toString().endsWith(POSTFIX)) {
+                    System.out.println(file.getFileName());
+
+                    paths.add(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        return paths;
     }
 
     private void checkData(PlayerData data) {

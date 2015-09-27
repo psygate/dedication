@@ -35,6 +35,7 @@ public class LoginLogoutListener implements Listener {
             ev.getPlayer().sendMessage("You have earned dedicated status.");
         }
         loginTimes.put(ev.getPlayer().getUniqueId(), System.currentTimeMillis());
+        data.getPlayerNames().add(ev.getPlayer().getName());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

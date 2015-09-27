@@ -1,6 +1,7 @@
 package com.psygate.dedication.backend;
 
 import com.psygate.dedication.data.PlayerData;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -16,4 +17,6 @@ public interface Backend {
     public void savePlayerData(PlayerData data);
 
     public void removePlayerData(UUID uuid);
+    
+    public List<PlayerData> loadAll();
 }

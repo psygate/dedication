@@ -44,6 +44,11 @@ public abstract class NumericTarget extends Target {
     }
 
     @Override
+    public void satisfy() {
+        this.value = this.target;
+    }
+
+    @Override
     public boolean isSatisfied() {
         return value >= target;
     }

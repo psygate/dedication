@@ -75,7 +75,7 @@ public class Dedication extends JavaPlugin {
         if (getServer()
                 .getPluginManager().getPlugin("Citadel") != null) {
             logger().info("Citadel found. Adding citadel listener.");
-            registerListener(new CitadelListener(playerdata));
+            registerListener(new CitadelListener(playerdata, pvp));
         } else {
             logger().info("Citadel not found. Skipping citadel listener.");
         }

@@ -65,5 +65,6 @@ public abstract class Target implements Serializable {
         }
         return true;
     }
-
+    
+    public abstract void satisfy();
 }

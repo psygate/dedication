@@ -33,6 +33,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -111,6 +112,20 @@ public class PvPListener implements Listener {
         }
     }
 
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onPotionSplash(PotionSplashEvent ev) {
+        ProjectileSource source = ev.getEntity().getShooter();
+        Dedication.logger().log(Level.INFO, "Spawned {0} by {1}", new Object[]{ev.getEntityType(), source});
+
+        if (source instanceof Player) {
+            Player player = (Player) source;
+            PlayerData data = Dedication.initPlayer(player.getUniqueId());
+            if (!data.isDedicated()) {
+                ev.getAffectedEntities().clear();
+            }
+        }
+    }
+
     private void subProcessEvent(EntityDamageByEntityEvent event, Player victim, Player attacker) {
         if (attackers.containsKey(attacker.getUniqueId())) {
             AttackerRecord rec = attackers.get(attacker.getUniqueId());
@@ -147,6 +162,29 @@ public class PvPListener implements Listener {
             noEngageMsg(attacker, victim);
             event.setCancelled(true);
         }
+    }
+
+    public void putInCombat(Player attacker, UUID victim) {
+        if (!attackers.containsKey(victim)) {
+            AttackerRecord record = new AttackerRecord();
+            attackers.put(victim, record);
+        }
+
+        attackers.get(victim).addAttacker(attacker.getUniqueId());
+        Player p = Dedication.getPlugin(Dedication.class).getServer().getPlayer(victim);
+        if (p != null) {
+            engageMsg(attacker, p);
+        }
+    }
+
+    public void putInCombat(Player attacker, Player victim) {
+        if (!attackers.containsKey(victim.getUniqueId())) {
+            AttackerRecord record = new AttackerRecord();
+            attackers.put(victim.getUniqueId(), record);
+        }
+
+        attackers.get(victim.getUniqueId()).addAttacker(attacker.getUniqueId());
+        engageMsg(attacker, victim);
     }
 
 //    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)

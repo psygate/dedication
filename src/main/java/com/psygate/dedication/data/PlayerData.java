@@ -18,6 +18,7 @@ public class PlayerData implements Serializable {
     private Set<Target> targets = new HashSet();
     private Date timestamp = new Date(System.currentTimeMillis());
     private boolean adminOverride = false;
+    private Set<String> playerNames = new HashSet<>();
 
     public PlayerData() {
         //Bean constructor.
@@ -51,6 +52,17 @@ public class PlayerData implements Serializable {
         this.timestamp = timestamp;
     }
 
+    public boolean isDedicatedNoOverrideNoPermission() {
+        for (Target tgt : targets) {
+//            Dedication.logger().info("Target: " + tgt + " Satisfied: " + tgt.isSatisfied());
+            if (!tgt.isSatisfied()) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
     public boolean isDedicated() {
         if (adminOverride) {
 //            Dedication.logger().info("Satisfied by admin override.");
@@ -64,16 +76,8 @@ public class PlayerData implements Serializable {
             return true;
         }
 
-        for (Target tgt : targets) {
-//            Dedication.logger().info("Target: " + tgt + " Satisfied: " + tgt.isSatisfied());
-            if (!tgt.isSatisfied()) {
-                return false;
-            } else {
-                System.out.println("Target satisfied. " + tgt);
-            }
-        }
+        return isDedicatedNoOverrideNoPermission();
 
-        return true;
     }
 
     public boolean isAdminOverride() {
@@ -84,13 +88,19 @@ public class PlayerData implements Serializable {
         this.adminOverride = adminOverride;
     }
 
+    public Set<String> getPlayerNames() {
+        return playerNames;
+    }
+
+    public void setPlayerNames(Set<String> playerNames) {
+        this.playerNames = playerNames;
+    }
+
     @Override
     public String toString() {
         return "PlayerData{" + "player=" + player + ", targets=" + targets
                 + ", timestamp=" + timestamp + ", adminOverride="
-                + adminOverride + ", has_override_permission="
-                + Dedication.getPlugin(Dedication.class)
-                .getServer().getPlayer(player).hasPermission("dedication.bypass") + "}";
+                + adminOverride + "}";
     }
 
 }
