@@ -1,7 +1,5 @@
 package com.psygate.dedication.data;
 
-import java.util.UUID;
-
 /**
  *
  * @author psygate (https://github.com/psygate)

@@ -1,6 +1,5 @@
 package com.psygate.dedication.data;
 
-import java.util.UUID;
 import org.bukkit.Material;
 
 /**

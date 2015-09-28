@@ -18,7 +18,6 @@ import vg.civcraft.mc.citadel.Citadel;
 import vg.civcraft.mc.citadel.events.ReinforcementDamageEvent;
 import vg.civcraft.mc.citadel.reinforcement.PlayerReinforcement;
 import vg.civcraft.mc.citadel.reinforcement.Reinforcement;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
 import com.psygate.dedication.Dedication;
 import vg.civcraft.mc.namelayer.group.GroupType;
 

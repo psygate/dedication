@@ -1,16 +1,11 @@
 package com.psygate.dedication.commands;
 
 import com.psygate.dedication.Dedication;
-import com.psygate.dedication.data.NumericTarget;
 import com.psygate.dedication.data.PlayerData;
-import com.psygate.dedication.data.Target;
-import java.util.logging.Level;
 import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 /**

@@ -1,8 +1,6 @@
 package com.psygate.dedication.listeners;
 
 import com.psygate.dedication.Dedication;
-import com.psygate.dedication.data.BlockPlaceTarget;
-import com.psygate.dedication.data.EdibleTarget;
 import com.psygate.dedication.data.PlayerData;
 import com.psygate.dedication.data.TimeTarget;
 import java.util.Date;

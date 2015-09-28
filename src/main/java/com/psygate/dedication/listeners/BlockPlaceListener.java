@@ -1,30 +1,22 @@
 package com.psygate.dedication.listeners;
 
 import com.psygate.dedication.Dedication;
-import com.psygate.dedication.data.BlockBreakTarget;
 import com.psygate.dedication.data.BlockPlaceTarget;
-import com.psygate.dedication.data.EdibleTarget;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
@@ -61,6 +53,9 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void igniteBlock(BlockIgniteEvent ev) {
+        if(ev.getPlayer() == null) {
+            return;
+        }
         if (!Dedication.initPlayer(ev.getPlayer().getUniqueId()).isDedicated()) {
 
             if (ev.getCause() == BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL) {

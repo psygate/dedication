@@ -10,34 +10,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import net.minecraft.server.v1_8_R3.EntityArrow;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockIgniteEvent;
-import org.bukkit.event.entity.EntityCombustByBlockEvent;
-import org.bukkit.event.entity.EntityCombustByEntityEvent;
-import org.bukkit.event.entity.EntityCombustEvent;
-import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.projectiles.ProjectileSource;
@@ -87,27 +70,16 @@ public class PvPListener implements Listener {
         }
     }
 
-//    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-//    public void onArrow(ProjectileHitEvent ev) {
-//        if (ev.getEntityType() == EntityType.PLAYER) {
-//            Player p = (Player) ev.getEntity();
-//            if (Dedication.initPlayer(p.getUniqueId()).isDedicated()) {
-//                ev.getProjectile().setMetadata("dedication", new ProjectileMeta(p.getUniqueId(), true));
-//            } else {
-//                ev.getProjectile().setMetadata("dedication", new ProjectileMeta(p.getUniqueId(), false));
-//            }
-//        }
-//    }
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntitySpawn(ProjectileLaunchEvent ev) {
         ProjectileSource source = ev.getEntity().getShooter();
-        Dedication.logger().log(Level.INFO, "Spawned {0} by {1}", new Object[]{ev.getEntityType(), source});
+//        Dedication.logger().log(Level.INFO, "Spawned {0} by {1}", new Object[]{ev.getEntityType(), source});
 
         if (source instanceof Player) {
             Player player = (Player) source;
             PlayerData data = Dedication.initPlayer(player.getUniqueId());
             ev.getEntity().setMetadata("dedication", new DedicationMeta(player.getUniqueId(), data.isDedicated()));
-            Dedication.logger().log(Level.INFO, "Attached meta. {0} by {1}", new Object[]{ev.getEntityType(), source});
+//            Dedication.logger().log(Level.INFO, "Attached meta. {0} by {1}", new Object[]{ev.getEntityType(), source});
 
         }
     }
@@ -115,7 +87,7 @@ public class PvPListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPotionSplash(PotionSplashEvent ev) {
         ProjectileSource source = ev.getEntity().getShooter();
-        Dedication.logger().log(Level.INFO, "Spawned {0} by {1}", new Object[]{ev.getEntityType(), source});
+//        Dedication.logger().log(Level.INFO, "Spawned {0} by {1}", new Object[]{ev.getEntityType(), source});
 
         if (source instanceof Player) {
             Player player = (Player) source;
@@ -149,13 +121,9 @@ public class PvPListener implements Listener {
 
     private void process(EntityDamageByEntityEvent event, Player attacker, Player victim, boolean attackerdicated, boolean victimdedicated) {
         if (attackerdicated && !victimdedicated) {
-            if (!attackers.containsKey(victim.getUniqueId())) {
-                AttackerRecord record = new AttackerRecord();
-                attackers.put(victim.getUniqueId(), record);
+            if (!putInCombat(attacker, victim)) {
+                event.setCancelled(true);
             }
-
-            attackers.get(victim.getUniqueId()).addAttacker(attacker.getUniqueId());
-            engageMsg(attacker, victim);
         } else if (!attackerdicated && victimdedicated) {
             subProcessEvent(event, victim, attacker);
         } else if (!attackerdicated && !victimdedicated) {
@@ -164,39 +132,28 @@ public class PvPListener implements Listener {
         }
     }
 
-    public void putInCombat(Player attacker, UUID victim) {
-        if (!attackers.containsKey(victim)) {
-            AttackerRecord record = new AttackerRecord();
-            attackers.put(victim, record);
-        }
-
-        attackers.get(victim).addAttacker(attacker.getUniqueId());
+    public boolean putInCombat(Player attacker, UUID victim) {
         Player p = Dedication.getPlugin(Dedication.class).getServer().getPlayer(victim);
-        if (p != null) {
-            engageMsg(attacker, p);
-        }
+        return putInCombat(attacker, p);
     }
 
-    public void putInCombat(Player attacker, Player victim) {
+    public boolean putInCombat(Player attacker, Player victim) {
+        if (attacker == null || victim == null) {
+            return false;
+        }
+        boolean exists = false;
         if (!attackers.containsKey(victim.getUniqueId())) {
             AttackerRecord record = new AttackerRecord();
             attackers.put(victim.getUniqueId(), record);
+        } else {
+            exists = true;
         }
 
         attackers.get(victim.getUniqueId()).addAttacker(attacker.getUniqueId());
         engageMsg(attacker, victim);
+        return exists;
     }
 
-//    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-//    public void blockChange(BlockIgniteEvent ev) {
-//        if (ev.getCause() == BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL
-//                && ev.getIgnitingEntity() != null
-//                && ev.getIgnitingEntity() instanceof Player) {
-//            Player igniter = (Player) ev.getIgnitingEntity();
-//            PlayerData data = Dedication.initPlayer(igniter.getUniqueId());
-//            ev.getBlock().setMetadata("dedication", new DedicationMeta(igniter.getUniqueId(), data.isDedicated()));
-//        }
-//    }
     private class DedicationMeta implements MetadataValue {
 
         private final UUID shotBy;
