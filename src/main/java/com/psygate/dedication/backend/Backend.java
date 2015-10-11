@@ -17,6 +17,8 @@ public interface Backend {
     public void savePlayerData(PlayerData data);
 
     public void removePlayerData(UUID uuid);
-    
+
     public List<PlayerData> loadAll();
+
+    public List<PlayerData> getAllByName(String name);
 }

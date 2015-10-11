@@ -52,7 +52,10 @@ public class DedicationTimerCommand implements CommandExecutor {
                 cs.sendMessage(Dedication.PREFIX + "Data for " + name + ":");
                 cs.sendMessage(toString(data));
             } else {
-                cs.sendMessage(Dedication.PREFIX + ChatColor.RED + "Player not found: " + name + " (is that player online?)");
+//                cs.sendMessage(Dedication.PREFIX + ChatColor.RED + "Player not found: " + name + " (is that player online?)");
+                for (PlayerData data : Dedication.loadAllByName(name)) {
+                    cs.sendMessage(toString(data));
+                }
             }
         }
     }
@@ -82,13 +85,16 @@ public class DedicationTimerCommand implements CommandExecutor {
             if (numericTarget == 0) {
                 cs.sendMessage(Dedication.PREFIX + "Progress: 0%");
             } else {
-                int perc = (int) ((numericDone / numericTarget) * 100);
+                int perc = (int) (((double) numericDone / (double) numericTarget) * 100);
                 cs.sendMessage(Dedication.PREFIX + " Progress: " + ((perc > 100) ? 100 : perc) + "%");
             }
         }
     }
 
     private String[] toString(PlayerData playerdata) {
+        if (playerdata == null) {
+            return new String[]{"NULL"};
+        }
         ArrayList<String> msgs = new ArrayList<>();
         msgs.add("PlayerData for " + playerdata.getPlayer() + " (" + playerdata.getPlayerNames() + "):");
 

@@ -23,6 +23,7 @@ import com.psygate.dedication.listeners.PvPListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -216,5 +217,9 @@ public class Dedication extends JavaPlugin {
         getServer().getPluginCommand("dreload").setExecutor(new DedicationReloadCommand());
         getServer().getPluginCommand("bypass").setExecutor(new DedicationSetBypassCommand());
         getServer().getPluginCommand("mute").setExecutor(new DedicationIgnoreCommand());
+    }
+
+    public static List<PlayerData> loadAllByName(String name) {
+        return instance.backend.getAllByName(name);
     }
 }

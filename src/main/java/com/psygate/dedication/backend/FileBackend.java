@@ -16,12 +16,14 @@ import com.psygate.dedication.data.NumericTarget;
 import com.psygate.dedication.data.PlayerData;
 import com.psygate.dedication.data.Target;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -32,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.Material;
 
 /**
@@ -172,6 +175,27 @@ public class FileBackend implements Backend {
                 it.remove();
             }
         }
+    }
+
+    @Override
+    public List<PlayerData> getAllByName(String name) {
+        List<PlayerData> data = new LinkedList<>();
+
+        try {
+            for (Path p : listPlayerFiles()) {
+                try (FileReader in = new FileReader(p.toFile())) {
+                    PlayerData pd = gsonbuilder.create().fromJson(in, PlayerData.class);
+
+                    if (pd.getPlayerNames().contains(name)) {
+                        data.add(pd);
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(FileBackend.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return data;
     }
 
     private class TargetSerializer implements JsonSerializer<Target>, JsonDeserializer<Target> {
