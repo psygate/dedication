@@ -33,14 +33,13 @@ public abstract class MaterialTarget extends NumericTarget {
         return this.mat;
     }
 
-    public Material getMat() {
-        return mat;
-    }
-
-    public void setMat(Material mat) {
-        this.mat = mat;
-    }
-
+//
+//    public Material getMat() {
+//        return mat;
+//    }
+//    public void setMat(Material mat) {
+//        this.mat = mat;
+//    }
     public boolean isAcceptAny() {
         return acceptAny;
     }

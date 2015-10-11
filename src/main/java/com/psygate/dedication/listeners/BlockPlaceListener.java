@@ -45,7 +45,7 @@ public class BlockPlaceListener implements Listener {
     public void bucketEmpty(PlayerBucketEmptyEvent ev) {
         if (!Dedication.initPlayer(ev.getPlayer().getUniqueId()).isDedicated()) {
             if (ev.getBucket() == Material.LAVA_BUCKET) {
-                ev.getPlayer().sendMessage(Dedication.PREFIX + ChatColor.RED + " You cannot use this.");
+                Dedication.sendMessage(ev.getPlayer(), Dedication.PREFIX + ChatColor.RED + " You cannot use this.");
                 ev.setCancelled(true);
             }
         }
@@ -53,7 +53,7 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void igniteBlock(BlockIgniteEvent ev) {
-        if(ev.getPlayer() == null) {
+        if (ev.getPlayer() == null) {
             return;
         }
         if (!Dedication.initPlayer(ev.getPlayer().getUniqueId()).isDedicated()) {
@@ -62,7 +62,7 @@ public class BlockPlaceListener implements Listener {
                 Block down = ev.getBlock().getRelative(BlockFace.DOWN);
                 if (down != null && down.getType() != Material.OBSIDIAN) {
                     if (ev.getPlayer() != null) {
-                        ev.getPlayer().sendMessage(Dedication.PREFIX + ChatColor.RED + " You cannot ignite this.");
+                        Dedication.sendMessage(ev.getPlayer(), Dedication.PREFIX + ChatColor.RED + " You cannot ignite this.");
                     }
                     ev.setCancelled(true);
                 }

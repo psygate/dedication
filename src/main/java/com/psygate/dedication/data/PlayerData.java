@@ -6,7 +6,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.util.ChatPaginator;
 
 /**
  *
@@ -19,6 +22,7 @@ public class PlayerData implements Serializable {
     private Date timestamp = new Date(System.currentTimeMillis());
     private boolean adminOverride = false;
     private Set<String> playerNames = new HashSet<>();
+    private long ignoringUntil = 0;
 
     public PlayerData() {
         //Bean constructor.
@@ -52,6 +56,14 @@ public class PlayerData implements Serializable {
         this.timestamp = timestamp;
     }
 
+    public long getIgnoringUntil() {
+        return ignoringUntil;
+    }
+
+    public void setIgnoringUntil(long ignoringUntil) {
+        this.ignoringUntil = ignoringUntil;
+    }
+
     public boolean isDedicatedNoOverrideNoPermission() {
         for (Target tgt : targets) {
 //            Dedication.logger().info("Target: " + tgt + " Satisfied: " + tgt.isSatisfied());
@@ -59,7 +71,7 @@ public class PlayerData implements Serializable {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -98,9 +110,7 @@ public class PlayerData implements Serializable {
 
     @Override
     public String toString() {
-        return "PlayerData{" + "player=" + player + ", targets=" + targets
-                + ", timestamp=" + timestamp + ", adminOverride="
-                + adminOverride + "}";
+        return "PlayerData{" + "player=" + player + ", targets=" + targets + ", timestamp=" + timestamp + ", adminOverride=" + adminOverride + ", playerNames=" + playerNames + '}';
     }
 
 }

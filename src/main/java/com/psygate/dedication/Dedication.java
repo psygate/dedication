@@ -3,6 +3,7 @@ package com.psygate.dedication;
 import com.psygate.dedication.backend.Backend;
 import com.psygate.dedication.backend.FileBackend;
 import com.psygate.dedication.commands.DedicationFlushCommand;
+import com.psygate.dedication.commands.DedicationIgnoreCommand;
 import com.psygate.dedication.commands.DedicationReloadCommand;
 import com.psygate.dedication.commands.DedicationSetBypassCommand;
 import com.psygate.dedication.commands.DedicationTimerCommand;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.entity.Player;
@@ -171,6 +173,23 @@ public class Dedication extends JavaPlugin {
         return data;
     }
 
+    public static void setIgnore(UUID player, long minutes) {
+        initPlayer(player).setIgnoringUntil(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(minutes));
+    }
+
+    public static void sendMessage(UUID player, String message) {
+        Player p = instance.getServer().getPlayer(player);
+        if (p != null) {
+            sendMessage(p, message);
+        }
+    }
+
+    public static void sendMessage(Player player, String message) {
+        if (initPlayer(player.getUniqueId()).getIgnoringUntil() <= System.currentTimeMillis()) {
+            player.sendMessage(message);
+        }
+    }
+
     public static void saveAndRemovePlayer(UUID player) {
         PlayerData data = instance.playerdata.remove(player);
 
@@ -196,5 +215,6 @@ public class Dedication extends JavaPlugin {
         getServer().getPluginCommand("flush").setExecutor(new DedicationFlushCommand());
         getServer().getPluginCommand("dreload").setExecutor(new DedicationReloadCommand());
         getServer().getPluginCommand("bypass").setExecutor(new DedicationSetBypassCommand());
+        getServer().getPluginCommand("mute").setExecutor(new DedicationIgnoreCommand());
     }
 }

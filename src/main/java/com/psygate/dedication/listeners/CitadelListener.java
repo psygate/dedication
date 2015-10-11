@@ -36,27 +36,27 @@ public class CitadelListener implements Listener {
     }
 
     @EventHandler
-    public void citadelPrevention(ReinforcementDamageEvent event) {
-        if (event.getPlayer() == null) {
+    public void citadelPrevention(ReinforcementDamageEvent ev) {
+        if (ev.getPlayer() == null) {
             return;
         }
 
-        if (Citadel.getReinforcementManager().isReinforced(event.getBlock()) && !dedication.get(event.getPlayer().getUniqueId()).isDedicated()) {
-            Reinforcement rf = Citadel.getReinforcementManager().getReinforcement(event.getBlock());
+        if (Citadel.getReinforcementManager().isReinforced(ev.getBlock()) && !dedication.get(ev.getPlayer().getUniqueId()).isDedicated()) {
+            Reinforcement rf = Citadel.getReinforcementManager().getReinforcement(ev.getBlock());
 
             if (rf instanceof PlayerReinforcement) {
                 PlayerReinforcement prf = (PlayerReinforcement) rf;
-                if (!canBreakCitadel(prf, event.getPlayer())) {
-                    event.setCancelled(true);
-                    event.getPlayer().sendMessage(ChatColor.BOLD + "" + ChatColor.RED + Dedication.PREFIX + "You may not break this reinforcement.");
+                if (!canBreakCitadel(prf, ev.getPlayer())) {
+                    ev.setCancelled(true);
+                    Dedication.sendMessage(ev.getPlayer(), ChatColor.BOLD + "" + ChatColor.RED + Dedication.PREFIX + "You cannot break this reinforcement.");
                 }
             }
-        } else if (dedication.get(event.getPlayer().getUniqueId()).isDedicated()) {
-            if (event.getReinforcement() instanceof PlayerReinforcement && Citadel.getReinforcementManager().isReinforced(event.getBlock())) {
-                PlayerReinforcement pr = (PlayerReinforcement) event.getReinforcement();
-                if (!pr.isAccessible(event.getPlayer()) || pr.getGroup().getType() == GroupType.PUBLIC) {
+        } else if (dedication.get(ev.getPlayer().getUniqueId()).isDedicated()) {
+            if (ev.getReinforcement() instanceof PlayerReinforcement && Citadel.getReinforcementManager().isReinforced(ev.getBlock())) {
+                PlayerReinforcement pr = (PlayerReinforcement) ev.getReinforcement();
+                if (!pr.isAccessible(ev.getPlayer()) || pr.getGroup().getType() == GroupType.PUBLIC) {
                     for (UUID uuid : pr.getGroup().getAllMembers()) {
-                        pvp.putInCombat(event.getPlayer(), uuid);
+                        pvp.putInCombat(ev.getPlayer(), uuid);
                     }
                 }
             }
@@ -65,25 +65,25 @@ public class CitadelListener implements Listener {
     }
 
     @EventHandler
-    public void onInteract(PlayerInteractEvent event) {
-        if (Dedication.initPlayer(event.getPlayer().getUniqueId()).isDedicated()) {
+    public void onInteract(PlayerInteractEvent ev) {
+        if (Dedication.initPlayer(ev.getPlayer().getUniqueId()).isDedicated()) {
             return;
         }
-        if (event.getClickedBlock() == null || !(event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
+        if (ev.getClickedBlock() == null || !(ev.getAction() == Action.RIGHT_CLICK_BLOCK)) {
             // Skip this. Player didnt click a block.
             return;
         }
 
-        if (Dedication.getConfiguration().getLockedBlocks().contains(event.getClickedBlock().getType())
-                && Citadel.getReinforcementManager().isReinforced(event.getClickedBlock())) {
+        if (Dedication.getConfiguration().getLockedBlocks().contains(ev.getClickedBlock().getType())
+                && Citadel.getReinforcementManager().isReinforced(ev.getClickedBlock())) {
 
-            Reinforcement rf = Citadel.getReinforcementManager().getReinforcement(event.getClickedBlock());
+            Reinforcement rf = Citadel.getReinforcementManager().getReinforcement(ev.getClickedBlock());
 
             if (rf instanceof PlayerReinforcement) {
                 PlayerReinforcement prf = (PlayerReinforcement) rf;
-                if (!canIgnoreCitadel(prf, event.getPlayer())) {
-                    event.setCancelled(true);
-                    event.getPlayer().sendMessage(ChatColor.BOLD + "" + ChatColor.RED + Dedication.PREFIX + "You may not open this container.");
+                if (!canIgnoreCitadel(prf, ev.getPlayer())) {
+                    ev.setCancelled(true);
+                    Dedication.sendMessage(ev.getPlayer(), ChatColor.BOLD + "" + ChatColor.RED + Dedication.PREFIX + "You cannot open this container.");
                 }
             }
         }

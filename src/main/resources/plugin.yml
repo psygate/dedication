@@ -25,7 +25,11 @@ commands:
         aliases: [dr]
         usage: /dr
         permission: dedication.admin.reload
-        
+    mute:
+        description: Ignores dedication messages for a set time.
+        aliases: [di]
+        usage: /di <time in minutes>
+        permission: dedication.messages.ignore
 
 permissions:
     dedication.bypass:
@@ -46,6 +50,9 @@ permissions:
     dedication.admin.reload:
         description: Reloads all settings.
         default: op
+    dedication.messages.ignore:
+        description: Allows players to ignore messages.
+        default: true
     dedication.admin:
         description: Allows modification of dedication.
         children:

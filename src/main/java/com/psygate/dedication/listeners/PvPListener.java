@@ -112,11 +112,11 @@ public class PvPListener implements Listener {
     }
 
     private void noEngageMsg(Player attacker, Player victim) {
-        attacker.sendMessage(Dedication.PREFIX + ChatColor.RED + "You cannot engage " + victim.getName() + ".");
+        Dedication.sendMessage(attacker, Dedication.PREFIX + ChatColor.RED + "You cannot attack " + victim.getName() + ".");
     }
 
     private void engageMsg(Player attacker, Player victim) {
-        victim.sendMessage(Dedication.PREFIX + ChatColor.RED + " You are free to engage " + attacker.getName());
+        Dedication.sendMessage(victim, Dedication.PREFIX + ChatColor.RED + "You are now in combat with " + attacker.getName());
     }
 
     private void process(EntityDamageByEntityEvent event, Player attacker, Player victim, boolean attackerdicated, boolean victimdedicated) {
