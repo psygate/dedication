@@ -126,7 +126,7 @@ public class DedicationTimerCommand implements CommandExecutor {
                 }
 
                 if (t.isSatisfied()) {
-                    msgs.add(ChatColor.GREEN + "[Satisified[" + ChatColor.RESET);
+                    msgs.add(ChatColor.GREEN + "[Satisified]" + ChatColor.RESET);
                 } else {
                     msgs.add(ChatColor.DARK_RED + "[Not Satisfied.]" + ChatColor.RESET);
                 }
