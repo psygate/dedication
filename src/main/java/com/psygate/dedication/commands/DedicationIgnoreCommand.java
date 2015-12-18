@@ -26,7 +26,7 @@ public class DedicationIgnoreCommand implements CommandExecutor {
                 }
                 Dedication.setIgnore(((Player) arg0).getUniqueId(), minutes);
                 arg0.sendMessage("Dedication notifications ignored for " + minutes + " minutes.");
-                arg0.sendMessage("To reset this, issue /dedication:mute 0");
+                arg0.sendMessage("To reset this, issue /dedication:mute 0 or /di 0");
             } else {
                 arg0.sendMessage(ChatColor.RED + "Only players can do that.");
             }
