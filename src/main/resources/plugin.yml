@@ -1,8 +1,8 @@
 name: Dedication
 main: com.psygate.dedication.Dedication
 version: 1.2
-author: Nok, psygate
-softdepend: [CombatTagPlus, Citadel]
+author: Nok, psygate, Mr_Little_Kitty
+softdepend: [CombatTagPlus, Citadel, Bastion]
 
 commands:
     timer:
