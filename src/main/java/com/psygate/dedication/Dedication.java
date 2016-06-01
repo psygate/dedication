@@ -11,15 +11,11 @@ import com.psygate.dedication.configuration.Configuration;
 import com.psygate.dedication.data.BlockBreakTarget;
 import com.psygate.dedication.data.BlockPlaceTarget;
 import com.psygate.dedication.data.EdibleTarget;
-import com.psygate.dedication.listeners.BlockBreakListener;
-import com.psygate.dedication.listeners.BlockPlaceListener;
-import com.psygate.dedication.listeners.EdibleListener;
-import com.psygate.dedication.listeners.LoginLogoutListener;
+import com.psygate.dedication.listeners.*;
 import com.psygate.dedication.data.PlayerData;
 import com.psygate.dedication.data.Target;
 import com.psygate.dedication.data.TimeTarget;
-import com.psygate.dedication.listeners.CitadelListener;
-import com.psygate.dedication.listeners.PvPListener;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,6 +77,14 @@ public class Dedication extends JavaPlugin {
             registerListener(new CitadelListener(playerdata, pvp));
         } else {
             logger().info("Citadel not found. Skipping citadel listener.");
+        }
+
+        if (getServer()
+                .getPluginManager().getPlugin("Bastion") != null) {
+            logger().info("Bastion found. Adding bastion listener.");
+            registerListener(new BastionListener());
+        } else {
+            logger().info("Bastion not found. Skipping bastion listener.");
         }
 
         reloadCache();
